@@ -1,11 +1,13 @@
 package com.musicapp.resource.service.impl;
 
 import com.musicapp.resource.dto.DeleteResourceResponse;
+import com.musicapp.resource.dto.SongRequest;
 import com.musicapp.resource.dto.UploadResourceResponse;
 import com.musicapp.resource.entity.Resource;
 import com.musicapp.resource.exception.NotFoundException;
 import com.musicapp.resource.exception.ServiceException;
 import com.musicapp.resource.exception.ValidationException;
+import com.musicapp.resource.feign.SongServiceClient;
 import com.musicapp.resource.repository.ResourceRepository;
 import com.musicapp.resource.service.ResourceService;
 import lombok.RequiredArgsConstructor;
@@ -14,12 +16,11 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.mp3.Mp3Parser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @Service
@@ -27,25 +28,33 @@ import java.util.stream.Stream;
 public class ResourceServiceImpl implements ResourceService {
 
     private final ResourceRepository resourceRepository;
+    private final SongServiceClient songServiceClient;
 
     @Override
-    public UploadResourceResponse uploadResource(MultipartFile file) {
-        validateFile(file);
+    public UploadResourceResponse uploadResource(byte[] file) {
+        if (file == null || file.length == 0) {
+            throw new ValidationException("File data is empty");
+        }
 
         Metadata metadata = extractMetadata(file);
 
         Resource resource = new Resource();
-        try {
-            resource.setData(file.getBytes());
-        } catch (IOException e) {
-            throw new ServiceException("Failed to read file data", e);
-        }
-
+        resource.setData(file);
         Resource savedResource = resourceRepository.save(resource);
 
-        // TODO: Call Song Service to store metadata
-        metadata.add("id", String.valueOf(savedResource.getId()));
-        // will be call to song-service here
+        // Extract and validate metadata fields
+        String title = Optional.ofNullable(metadata.get("title")).orElse("Unknown Title");
+        String artist = Optional.ofNullable(metadata.get("xmpDM:artist")).orElse("Unknown Artist");
+        String album = Optional.ofNullable(metadata.get("xmpDM:album")).orElse("Unknown Album");
+        String duration = metadata.get("xmpDM:duration");
+        String formattedDuration = formatDuration(duration);
+        String yearStr = metadata.get("xmpDM:releaseDate");
+
+        int year = (yearStr != null && !yearStr.isEmpty()) ? Integer.parseInt(yearStr) : 0;
+
+        SongRequest request = new SongRequest(savedResource.getId(), title, artist, album, formattedDuration, year);
+        System.out.println(":::::::::::: Request ::::::::::::: >> " + request);
+        songServiceClient.saveSongMetadata(request); // Use Feign Client to save metadata
 
         return new UploadResourceResponse(savedResource.getId());
     }
@@ -68,17 +77,16 @@ public class ResourceServiceImpl implements ResourceService {
                 .toList();
 
         List<Resource> resourcesToDelete = resourceRepository.findAllById(ids);
-//        if (resourcesToDelete.isEmpty()) {
-//            throw new NotFoundException("No resources found for the given IDs.");
-//        }
-
         resourceRepository.deleteAll(resourcesToDelete);
+
+        songServiceClient.deleteSongMetadata(csvIds);
+
         return new DeleteResourceResponse(resourcesToDelete.stream().map(Resource::getId).toList());
     }
 
 
-    private Metadata extractMetadata(MultipartFile file) {
-        try (InputStream inputStream = new ByteArrayInputStream(file.getBytes())) {
+    private Metadata extractMetadata(byte[] fileData) {
+        try (InputStream inputStream = new ByteArrayInputStream(fileData)) {
             Metadata metadata = new Metadata();
             BodyContentHandler handler = new BodyContentHandler();
             Mp3Parser mp3Parser = new Mp3Parser();
@@ -89,12 +97,19 @@ public class ResourceServiceImpl implements ResourceService {
         }
     }
 
-    private void validateFile(MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new ValidationException("File is empty");
+    private String formatDuration(String duration) {
+        if (duration == null || duration.isEmpty()) {
+            return "00:00";
         }
-        if (!"audio/mpeg".equals(file.getContentType())) {
-            throw new ValidationException("Invalid MP3 file");
+
+        try {
+            double seconds = Double.parseDouble(duration);
+            int minutes = (int) (seconds / 60);
+            int remainingSeconds = (int) (seconds % 60);
+
+            return String.format("%02d:%02d", minutes, remainingSeconds);
+        } catch (NumberFormatException e) {
+            return "00:00";
         }
     }
 }

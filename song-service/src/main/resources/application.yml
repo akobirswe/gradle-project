@@ -1,14 +1,18 @@
 spring:
   application:
     name: song
-    data:
-      url: jdbc:postgresql://localhost:5432/song_db
-      username: username
-      password: password
-      jpa:
-        database-platform: org.hibernate.dialect.PostgreSQLDialect
-        hibernate:
-          ddl-auto: update
+  datasource:
+    url: jdbc:postgresql://localhost:5432/song_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
 
-    server:
-      port: 8082
+server:
+  port: 8082

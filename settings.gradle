@@ -1,2 +1,2 @@
-rootProject.name = 'gradle-project'
+rootProject.name = 'musicapp'
 include 'resource-service', 'song-service'
