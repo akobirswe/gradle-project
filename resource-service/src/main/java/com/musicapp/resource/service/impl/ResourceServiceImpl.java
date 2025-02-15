@@ -68,9 +68,9 @@ public class ResourceServiceImpl implements ResourceService {
                 .toList();
 
         List<Resource> resourcesToDelete = resourceRepository.findAllById(ids);
-        if (resourcesToDelete.isEmpty()) {
-            throw new NotFoundException("No resources found for the given IDs.");
-        }
+//        if (resourcesToDelete.isEmpty()) {
+//            throw new NotFoundException("No resources found for the given IDs.");
+//        }
 
         resourceRepository.deleteAll(resourcesToDelete);
         return new DeleteResourceResponse(resourcesToDelete.stream().map(Resource::getId).toList());
