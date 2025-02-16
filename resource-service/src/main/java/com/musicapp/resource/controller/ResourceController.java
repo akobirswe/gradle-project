@@ -4,6 +4,9 @@ import com.musicapp.resource.dto.DeleteResourceResponse;
 import com.musicapp.resource.dto.UploadResourceResponse;
 import com.musicapp.resource.service.ResourceService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +25,10 @@ public class ResourceController {
     @GetMapping("/{id}")
     public ResponseEntity<byte[]> getResource(@PathVariable Long id) {
         byte[] fileData = service.getResource(id);
-        return ResponseEntity.ok(fileData);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("audio/mpeg"));
+        headers.setContentLength(fileData.length);
+        return new ResponseEntity<>(fileData, headers, HttpStatus.OK);
     }
 
     @DeleteMapping

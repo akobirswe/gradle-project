@@ -42,7 +42,6 @@ public class ResourceServiceImpl implements ResourceService {
         resource.setData(file);
         Resource savedResource = resourceRepository.save(resource);
 
-        // Extract and validate metadata fields
         String title = Optional.ofNullable(metadata.get("title")).orElse("Unknown Title");
         String artist = Optional.ofNullable(metadata.get("xmpDM:artist")).orElse("Unknown Artist");
         String album = Optional.ofNullable(metadata.get("xmpDM:album")).orElse("Unknown Album");
