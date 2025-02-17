@@ -23,6 +23,7 @@ public record SongRequest(
 
         @Min(value = 1900, message = "Year must be between 1900 and 2099")
         @Max(value = 2099, message = "Year must be between 1900 and 2099")
+        @NotNull
         Integer year
 ) {
 }

@@ -37,6 +37,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 
+    @ExceptionHandler(FeignClientException.class)
+    public ResponseEntity<ErrorResponse> handleFeignClientException(FeignClientException ex) {
+        return buildResponse(ex.getStatus(), "Feign Client Error", ex.getMessage());
+    }
+
     @ExceptionHandler(ServiceException.class)
     public ResponseEntity<ErrorResponse> handleServiceException(ServiceException ex) {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Service Error", ex.getMessage());

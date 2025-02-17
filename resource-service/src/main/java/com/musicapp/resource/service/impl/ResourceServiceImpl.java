@@ -4,17 +4,19 @@ import com.musicapp.resource.dto.DeleteResourceResponse;
 import com.musicapp.resource.dto.SongRequest;
 import com.musicapp.resource.dto.UploadResourceResponse;
 import com.musicapp.resource.entity.Resource;
+import com.musicapp.resource.exception.FeignClientException;
 import com.musicapp.resource.exception.NotFoundException;
-import com.musicapp.resource.exception.ServiceException;
 import com.musicapp.resource.exception.ValidationException;
 import com.musicapp.resource.feign.SongServiceClient;
 import com.musicapp.resource.repository.ResourceRepository;
 import com.musicapp.resource.service.ResourceService;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.mp3.Mp3Parser;
 import org.apache.tika.sax.BodyContentHandler;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -49,17 +51,49 @@ public class ResourceServiceImpl implements ResourceService {
         String formattedDuration = formatDuration(duration);
         String yearStr = metadata.get("xmpDM:releaseDate");
 
-        int year = (yearStr != null && !yearStr.isEmpty()) ? Integer.parseInt(yearStr) : 0;
+        int year = 0;
+        if (yearStr != null && !yearStr.isEmpty()) {
+            if (!yearStr.matches("\\d{4}")) {
+                throw new ValidationException("Invalid year format: " + yearStr);
+            }
+            year = Integer.parseInt(yearStr);
+        }
 
         SongRequest request = new SongRequest(savedResource.getId(), title, artist, album, formattedDuration, year);
-        songServiceClient.saveSongMetadata(request);
+
+        try {
+            songServiceClient.saveSongMetadata(request);
+        } catch (FeignException.BadRequest ex) {
+            String responseBody = ex.contentUTF8();
+
+            throw new ValidationException("Song Service Validation Error: " + responseBody);
+        } catch (FeignException ex) {
+            throw new FeignClientException(HttpStatus.valueOf(ex.status()), extractFeignMessage(ex));
+        }
 
         return new UploadResourceResponse(savedResource.getId());
     }
 
+    private String extractFeignMessage(FeignException ex) {
+        try {
+            return ex.contentUTF8();
+        } catch (Exception e) {
+            return "Unexpected error from Song Service";
+        }
+    }
+
+
     @Override
-    public byte[] getResource(Long id) {
-        return resourceRepository.findById(id)
+    public byte[] getResource(String id) {
+        if (!id.matches("\\d+")) {
+            throw new ValidationException("Invalid resource ID: " + id);
+        }
+
+        long resourceId = Long.parseLong(id);
+        if (resourceId <= 0) {
+            throw new ValidationException("Invalid resource ID: " + id);
+        }
+        return resourceRepository.findById(resourceId)
                 .orElseThrow(() -> new NotFoundException("Resource not found with id: " + id))
                 .getData();
     }
@@ -68,6 +102,10 @@ public class ResourceServiceImpl implements ResourceService {
     public DeleteResourceResponse deleteResources(String csvIds) {
         if (csvIds.length() > 200) {
             throw new ValidationException("CSV length exceeds limit");
+        }
+
+        if (!csvIds.matches("^(\\d+,)*\\d+$")) { // Ensure only numbers & commas
+            throw new ValidationException("Invalid CSV format: " + csvIds);
         }
 
         List<Long> ids = Stream.of(csvIds.split(","))
@@ -82,7 +120,6 @@ public class ResourceServiceImpl implements ResourceService {
         return new DeleteResourceResponse(resourcesToDelete.stream().map(Resource::getId).toList());
     }
 
-
     private Metadata extractMetadata(byte[] fileData) {
         try (InputStream inputStream = new ByteArrayInputStream(fileData)) {
             Metadata metadata = new Metadata();
@@ -91,7 +128,7 @@ public class ResourceServiceImpl implements ResourceService {
             mp3Parser.parse(inputStream, handler, metadata, new ParseContext());
             return metadata;
         } catch (Exception e) {
-            throw new ServiceException("Failed to extract MP3 metadata", e);
+            throw new ValidationException("Invalid MP3 data");
         }
     }
 

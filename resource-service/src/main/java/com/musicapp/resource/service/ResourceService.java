@@ -6,7 +6,7 @@ import com.musicapp.resource.dto.UploadResourceResponse;
 public interface ResourceService {
     UploadResourceResponse uploadResource(byte[] file);
 
-    byte[] getResource(Long id);
+    byte[] getResource(String id);
 
     DeleteResourceResponse deleteResources(String csvIds);
 }

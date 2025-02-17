@@ -5,6 +5,7 @@ import com.musicapp.song.dto.DeleteSongResponse;
 import com.musicapp.song.dto.SongRequest;
 import com.musicapp.song.dto.SongResponse;
 import com.musicapp.song.entity.Song;
+import com.musicapp.song.exception.ConflictException;
 import com.musicapp.song.exception.NotFoundException;
 import com.musicapp.song.exception.ValidationException;
 import com.musicapp.song.mapper.SongMapper;
@@ -26,7 +27,7 @@ public class SongServiceImpl implements SongService {
     @Override
     public CreateSongResponse createSong(SongRequest songRequest) {
         if (songRepository.existsById(songRequest.id())) {
-            throw new ValidationException("Metadata for this ID already exists");
+            throw new ConflictException("Metadata for this ID already exists");
         }
 
         Song song = songMapper.toEntity(songRequest);
@@ -35,8 +36,16 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
-    public SongResponse getSong(Long id) {
-        return songRepository.findById(id)
+    public SongResponse getSong(String id) {
+        if (!id.matches("\\d+")) {
+            throw new ValidationException("Invalid resource ID: " + id);
+        }
+
+        long resourceId = Long.parseLong(id);
+        if (resourceId <= 0) {
+            throw new ValidationException("Invalid resource ID: " + id);
+        }
+        return songRepository.findById(resourceId)
                 .map(songMapper::toDto)
                 .orElseThrow(() -> new NotFoundException("Song metadata not found with ID: " + id));
     }
@@ -45,6 +54,10 @@ public class SongServiceImpl implements SongService {
     public DeleteSongResponse deleteSongs(String csvIds) {
         if (csvIds.length() > 200) {
             throw new ValidationException("CSV length exceeds limit");
+        }
+
+        if (!csvIds.matches("^(\\d+,)*\\d+$")) {
+            throw new ValidationException("Invalid CSV format: " + csvIds);
         }
 
         List<Long> ids = Stream.of(csvIds.split(","))

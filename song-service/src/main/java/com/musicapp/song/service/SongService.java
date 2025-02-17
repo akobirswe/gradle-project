@@ -8,7 +8,7 @@ import com.musicapp.song.dto.SongResponse;
 public interface SongService {
     CreateSongResponse createSong(SongRequest songRequest);
 
-    SongResponse getSong(Long id);
+    SongResponse getSong(String id);
 
     DeleteSongResponse deleteSongs(String csvIds);
 }
