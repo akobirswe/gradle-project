@@ -52,8 +52,7 @@ public class ResourceServiceImpl implements ResourceService {
         int year = (yearStr != null && !yearStr.isEmpty()) ? Integer.parseInt(yearStr) : 0;
 
         SongRequest request = new SongRequest(savedResource.getId(), title, artist, album, formattedDuration, year);
-        System.out.println(":::::::::::: Request ::::::::::::: >> " + request);
-        songServiceClient.saveSongMetadata(request); // Use Feign Client to save metadata
+        songServiceClient.saveSongMetadata(request);
 
         return new UploadResourceResponse(savedResource.getId());
     }
