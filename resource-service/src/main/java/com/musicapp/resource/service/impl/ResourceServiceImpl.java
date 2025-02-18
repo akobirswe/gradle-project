@@ -49,15 +49,7 @@ public class ResourceServiceImpl implements ResourceService {
         String album = Optional.ofNullable(metadata.get("xmpDM:album")).orElse("Unknown Album");
         String duration = metadata.get("xmpDM:duration");
         String formattedDuration = formatDuration(duration);
-        String yearStr = metadata.get("xmpDM:releaseDate");
-
-        int year = 0;
-        if (yearStr != null && !yearStr.isEmpty()) {
-            if (!yearStr.matches("\\d{4}")) {
-                throw new ValidationException("Invalid year format: " + yearStr);
-            }
-            year = Integer.parseInt(yearStr);
-        }
+        String year = metadata.get("xmpDM:releaseDate");
 
         SongRequest request = new SongRequest(savedResource.getId(), title, artist, album, formattedDuration, year);
 
