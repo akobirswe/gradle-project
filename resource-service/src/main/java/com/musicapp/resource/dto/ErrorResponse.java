@@ -1,11 +1,13 @@
 package com.musicapp.resource.dto;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 public record ErrorResponse(
         LocalDateTime timestamp,
         int status,
-        String error,
-        String message
+        String errorMessage,
+        String errorCode,
+        Map<String, String> details
 ) {
 }

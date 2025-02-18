@@ -21,8 +21,8 @@ public record SongRequest(
         @Pattern(regexp = "^(0[0-9]|[1-5][0-9]):[0-5][0-9]$", message = "Duration must be in MM:SS format")
         String duration,
 
-        @Min(value = 1900, message = "Year must be between 1900 and 2099")
-        @Max(value = 2099, message = "Year must be between 1900 and 2099")
-        Integer year
-){
+        @Pattern(regexp = "^(19|20)\\d{2}$", message = "Year must be in YYYY format (1900-2099)")
+        @NotBlank(message = "Year is required")
+        String year
+) {
 }

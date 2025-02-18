@@ -30,5 +30,5 @@ public class Song {
     private String duration;
 
     @Column(nullable = false)
-    private Integer year;
+    private String year;
 }

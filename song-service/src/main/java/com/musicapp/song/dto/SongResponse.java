@@ -6,6 +6,6 @@ public record SongResponse(
         String artist,
         String album,
         String duration,
-        Integer year
+        String year
 ) {
 }
