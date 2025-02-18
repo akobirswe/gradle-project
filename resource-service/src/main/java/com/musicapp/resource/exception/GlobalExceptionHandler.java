@@ -8,7 +8,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,7 +16,7 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String message, String errorCode, Map<String, String> details) {
         return ResponseEntity.status(status)
-                .body(new ErrorResponse(LocalDateTime.now(), status.value(), message, errorCode, details));
+                .body(new ErrorResponse(status.value(), message, errorCode, details));
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -27,7 +26,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(ValidationException ex) {
-        return buildResponse(HttpStatus.BAD_REQUEST, "Validation error", "400", null);
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), "400", null);
     }
 
     @ExceptionHandler(FeignClientException.class)

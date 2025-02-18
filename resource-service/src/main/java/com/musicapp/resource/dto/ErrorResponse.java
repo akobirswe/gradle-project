@@ -1,10 +1,11 @@
 package com.musicapp.resource.dto;
 
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.Map;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record ErrorResponse(
-        LocalDateTime timestamp,
         int status,
         String errorMessage,
         String errorCode,

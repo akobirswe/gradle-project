@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 
 public record SongRequest(
         @NotNull(message = "ID is required")
+        @Min(value = 0, message = "ID must be a numeric value greater than 0")
         Long id,
 
         @NotBlank(message = "Name is required")

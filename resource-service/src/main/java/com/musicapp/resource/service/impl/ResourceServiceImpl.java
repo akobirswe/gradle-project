@@ -86,17 +86,17 @@ public class ResourceServiceImpl implements ResourceService {
             throw new ValidationException("Invalid resource ID: " + id);
         }
         return resourceRepository.findById(resourceId)
-                .orElseThrow(() -> new NotFoundException("Resource not found with id: " + id))
+                .orElseThrow(() -> new NotFoundException("Resource not found with ID: " + id))
                 .getData();
     }
 
     @Override
     public DeleteResourceResponse deleteResources(String csvIds) {
         if (csvIds.length() > 200) {
-            throw new ValidationException("CSV length exceeds limit");
+            throw new ValidationException("CSV string is too long: received %s characters. Maximum allowed length is 200 characters.".formatted(csvIds.length()));
         }
 
-        if (!csvIds.matches("^(\\d+,)*\\d+$")) { // Ensure only numbers & commas
+        if (!csvIds.matches("^(\\d+,)*\\d+$")) {
             throw new ValidationException("Invalid CSV format: " + csvIds);
         }
 

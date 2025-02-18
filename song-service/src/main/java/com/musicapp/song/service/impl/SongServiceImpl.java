@@ -27,7 +27,7 @@ public class SongServiceImpl implements SongService {
     @Override
     public CreateSongResponse createSong(SongRequest songRequest) {
         if (songRepository.existsById(songRequest.id())) {
-            throw new ConflictException("Metadata for this ID already exists");
+            throw new ConflictException("Metadata for this ID already exists: " + songRequest.id());
         }
 
         Song song = songMapper.toEntity(songRequest);
@@ -53,7 +53,7 @@ public class SongServiceImpl implements SongService {
     @Override
     public DeleteSongResponse deleteSongs(String csvIds) {
         if (csvIds.length() > 200) {
-            throw new ValidationException("CSV length exceeds limit");
+            throw new ValidationException("CSV string is too long: received %s characters. Maximum allowed length is 200 characters.".formatted(csvIds.length()));
         }
 
         if (!csvIds.matches("^(\\d+,)*\\d+$")) {
