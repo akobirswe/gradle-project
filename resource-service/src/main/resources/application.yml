@@ -26,4 +26,4 @@ logging:
     org.hibernate.type.descriptor.sql: trace
 
 song-service:
-  url: http://song-service:8082/api/v1/songs
+  url: ${SONG_SERVICE_URL:http://localhost:8082/api/v1/songs}
