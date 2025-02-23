@@ -7,8 +7,6 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   jpa:
-    hibernate:
-      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -25,11 +23,7 @@ server:
 
 logging:
   level:
-    org:
-      hibernate:
-        type:
-          descriptor:
-            sql: trace
+    org.hibernate.type.descriptor.sql: trace
 
 song-service:
-  url: http://localhost:8082/api/v1/songs
+  url: http://song-service:8082/api/v1/songs
