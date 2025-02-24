@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "song-service", url = "${song-service.url}")
+@FeignClient(name = "song-service", url = "${song-service.base-url}${song-service.songs-endpoint}")
 public interface SongServiceClient {
     @PostMapping
     void saveSongMetadata(@Valid @RequestBody SongRequest request);
