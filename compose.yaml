@@ -23,15 +23,23 @@ services:
     ports:
       - "5434:5432"
 
+  service-discovery:
+    build: ./service-discovery
+    restart: always
+    ports:
+      - "8761:8761"
+
   resource-service:
     build: ./resource-service
     depends_on:
       - resource-db
+      - service-discovery
     environment:
       SPRING_DATASOURCE_URL: ${RESOURCE_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       SONG_SERVICE_BASE_URL: ${SONG_SERVICE_BASE_URL}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICEURL}
     ports:
       - "8081:8081"
 
@@ -39,9 +47,13 @@ services:
     build: ./song-service
     depends_on:
       - song-db
+      - service-discovery
     environment:
       SPRING_DATASOURCE_URL: ${SONG_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICEURL}
+    deploy:
+      replicas: 2
     ports:
-      - "8082:8082"
+      - "8082-8083:8082"

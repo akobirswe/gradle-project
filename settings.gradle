@@ -1,2 +1,2 @@
 rootProject.name = 'musicapp'
-include 'resource-service', 'song-service'
+include 'resource-service', 'song-service', 'service-discovery'

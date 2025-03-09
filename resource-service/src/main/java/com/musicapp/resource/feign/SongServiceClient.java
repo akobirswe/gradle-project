@@ -8,11 +8,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "song-service", url = "${song-service.base-url}${song-service.songs-endpoint}")
+@FeignClient(name = "SONG-SERVICE")
 public interface SongServiceClient {
-    @PostMapping
+    @PostMapping("/api/v1/songs")
     void saveSongMetadata(@Valid @RequestBody SongRequest request);
 
-    @DeleteMapping
+    @DeleteMapping("/api/v1/songs")
     void deleteSongMetadata(@RequestParam("id") String csvIds);
 }
