@@ -7,7 +7,7 @@ public record SongRequest(
         @Min(value = 0, message = "ID must be a numeric value greater than 0")
         Long id,
 
-        @NotBlank(message = "Name is required")
+        @NotBlank(message = "Song name is required")
         @Size(min = 1, max = 100, message = "Name must be 1-100 characters")
         String name,
 

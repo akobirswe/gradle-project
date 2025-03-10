@@ -38,12 +38,12 @@ public class SongServiceImpl implements SongService {
     @Override
     public SongResponse getSong(String id) {
         if (!id.matches("\\d+")) {
-            throw new ValidationException("Invalid resource ID: " + id);
+            throw new ValidationException("Invalid value '%s' for ID. Must be a positive integer".formatted(id));
         }
 
         long resourceId = Long.parseLong(id);
         if (resourceId <= 0) {
-            throw new ValidationException("Invalid resource ID: " + id);
+            throw new ValidationException("Invalid value '%s' for ID. Must be a positive integer".formatted(id));
         }
         return songRepository.findById(resourceId)
                 .map(songMapper::toDto)

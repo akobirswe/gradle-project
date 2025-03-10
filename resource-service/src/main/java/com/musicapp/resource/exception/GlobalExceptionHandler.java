@@ -16,7 +16,7 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String message, String errorCode, Map<String, String> details) {
         return ResponseEntity.status(status)
-                .body(new ErrorResponse(status.value(), message, errorCode, details));
+                .body(new ErrorResponse(message, errorCode, details));
     }
 
     @ExceptionHandler(NotFoundException.class)
