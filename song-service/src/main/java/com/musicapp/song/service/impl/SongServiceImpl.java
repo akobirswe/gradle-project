@@ -14,7 +14,6 @@ import com.musicapp.song.service.SongService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 @Service
@@ -30,8 +29,8 @@ public class SongServiceImpl implements SongService {
             throw new ConflictException("Metadata for this ID already exists: " + songRequest.id());
         }
 
-        Song song = songMapper.toEntity(songRequest);
-        Song savedSong = songRepository.save(song);
+        var song = songMapper.toEntity(songRequest);
+        var savedSong = songRepository.save(song);
         return new CreateSongResponse(savedSong.getId());
     }
 
@@ -41,7 +40,7 @@ public class SongServiceImpl implements SongService {
             throw new ValidationException("Invalid value '%s' for ID. Must be a positive integer".formatted(id));
         }
 
-        long resourceId = Long.parseLong(id);
+        var resourceId = Long.parseLong(id);
         if (resourceId <= 0) {
             throw new ValidationException("Invalid value '%s' for ID. Must be a positive integer".formatted(id));
         }
@@ -60,11 +59,11 @@ public class SongServiceImpl implements SongService {
             throw new ValidationException("Invalid CSV format: " + csvIds);
         }
 
-        List<Long> ids = Stream.of(csvIds.split(","))
+        var ids = Stream.of(csvIds.split(","))
                 .map(Long::parseLong)
                 .toList();
 
-        List<Song> songsToDelete = songRepository.findAllById(ids);
+        var songsToDelete = songRepository.findAllById(ids);
         songRepository.deleteAll(songsToDelete);
 
         return new DeleteSongResponse(songsToDelete.stream().map(Song::getId).toList());

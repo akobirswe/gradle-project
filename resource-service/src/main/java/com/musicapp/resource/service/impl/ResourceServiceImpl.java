@@ -20,8 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -38,26 +36,25 @@ public class ResourceServiceImpl implements ResourceService {
             throw new ValidationException("File data is empty");
         }
 
-        Metadata metadata = extractMetadata(file);
+        var metadata = extractMetadata(file);
 
-        Resource resource = new Resource();
+        var resource = new Resource();
         resource.setData(file);
-        Resource savedResource = resourceRepository.save(resource);
+        var savedResource = resourceRepository.save(resource);
 
-        String title = Optional.ofNullable(metadata.get("title")).orElse("Unknown Title");
-        String artist = Optional.ofNullable(metadata.get("xmpDM:artist")).orElse("Unknown Artist");
-        String album = Optional.ofNullable(metadata.get("xmpDM:album")).orElse("Unknown Album");
-        String duration = metadata.get("xmpDM:duration");
-        String formattedDuration = formatDuration(duration);
-        String year = metadata.get("xmpDM:releaseDate");
+        var title = Optional.ofNullable(metadata.get("title")).orElse("Unknown Title");
+        var artist = Optional.ofNullable(metadata.get("xmpDM:artist")).orElse("Unknown Artist");
+        var album = Optional.ofNullable(metadata.get("xmpDM:album")).orElse("Unknown Album");
+        var duration = metadata.get("xmpDM:duration");
+        var formattedDuration = formatDuration(duration);
+        var year = metadata.get("xmpDM:releaseDate");
 
-        SongRequest request = new SongRequest(savedResource.getId(), title, artist, album, formattedDuration, year);
+        var request = new SongRequest(savedResource.getId(), title, artist, album, formattedDuration, year);
 
         try {
             songServiceClient.saveSongMetadata(request);
         } catch (FeignException.BadRequest ex) {
-            String responseBody = ex.contentUTF8();
-
+            var responseBody = ex.contentUTF8();
             throw new ValidationException("Song Service Validation Error: " + responseBody);
         } catch (FeignException ex) {
             throw new FeignClientException(HttpStatus.valueOf(ex.status()), extractFeignMessage(ex));
@@ -81,7 +78,7 @@ public class ResourceServiceImpl implements ResourceService {
             throw new ValidationException("Invalid value '%s' for ID. Must be a positive integer".formatted(id));
         }
 
-        long resourceId = Long.parseLong(id);
+        var resourceId = Long.parseLong(id);
         if (resourceId <= 0) {
             throw new ValidationException("Invalid value '%s' for ID. Must be a positive integer".formatted(id));
         }
@@ -100,23 +97,22 @@ public class ResourceServiceImpl implements ResourceService {
             throw new ValidationException("Invalid CSV format: " + csvIds);
         }
 
-        List<Long> ids = Stream.of(csvIds.split(","))
+        var ids = Stream.of(csvIds.split(","))
                 .map(Long::parseLong)
                 .toList();
 
-        List<Resource> resourcesToDelete = resourceRepository.findAllById(ids);
+        var resourcesToDelete = resourceRepository.findAllById(ids);
         resourceRepository.deleteAll(resourcesToDelete);
-
         songServiceClient.deleteSongMetadata(csvIds);
 
         return new DeleteResourceResponse(resourcesToDelete.stream().map(Resource::getId).toList());
     }
 
     private Metadata extractMetadata(byte[] fileData) {
-        try (InputStream inputStream = new ByteArrayInputStream(fileData)) {
-            Metadata metadata = new Metadata();
-            BodyContentHandler handler = new BodyContentHandler();
-            Mp3Parser mp3Parser = new Mp3Parser();
+        try (var inputStream = new ByteArrayInputStream(fileData)) {
+            var metadata = new Metadata();
+            var handler = new BodyContentHandler();
+            var mp3Parser = new Mp3Parser();
             mp3Parser.parse(inputStream, handler, metadata, new ParseContext());
             return metadata;
         } catch (Exception e) {
@@ -130,9 +126,9 @@ public class ResourceServiceImpl implements ResourceService {
         }
 
         try {
-            double seconds = Double.parseDouble(duration);
-            int minutes = (int) (seconds / 60);
-            int remainingSeconds = (int) (seconds % 60);
+            var seconds = Double.parseDouble(duration);
+            var minutes = (int) (seconds / 60);
+            var remainingSeconds = (int) (seconds % 60);
 
             return String.format("%02d:%02d", minutes, remainingSeconds);
         } catch (NumberFormatException e) {

@@ -24,8 +24,8 @@ public class ResourceController {
 
     @GetMapping("/{id}")
     public ResponseEntity<byte[]> getResource(@PathVariable String id) {
-        byte[] fileData = service.getResource(id);
-        HttpHeaders headers = new HttpHeaders();
+        var fileData = service.getResource(id);
+        var headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("audio/mpeg"));
         headers.setContentLength(fileData.length);
         return new ResponseEntity<>(fileData, headers, HttpStatus.OK);
